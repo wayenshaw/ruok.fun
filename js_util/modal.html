@@ -1,0 +1,183 @@
+<html>
+<head>
+<style>
+#draggableDiv {
+	position: absolute;
+	z-index: 9;
+	background-color: #f1f1f1;
+	border: 1px solid #d3d3d3;
+	text-align: center;
+}
+
+#draggableDivHeader {
+	padding: 10px;
+	cursor: grab;
+	z-index: 10;
+	background-color: #2196F3;
+	color: #fff;
+}
+</style>
+<script type="text/javascript">
+	function onDrag(node) {
+		$(node).css("cursor", "grabbing");
+	}
+	function onMouseUp(node) {
+		$(node).css("cursor", "grab");
+	}
+	function dragElement(elmnt) {
+		var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+		if (document.getElementById(elmnt.id + "Header")) {
+			// if present, the header is where you move the DIV from:
+			document.getElementById(elmnt.id + "Header").onmousedown = dragMouseDown;
+		} else {
+			// otherwise, move the DIV from anywhere inside the DIV:
+			elmnt.onmousedown = dragMouseDown;
+		}
+
+		function dragMouseDown(e) {
+			$('#draggableDivHeader').css("cursor", "grabbing");
+			e = e || window.event;
+			e.preventDefault();
+			// get the mouse cursor position at startup:
+			pos3 = e.clientX;
+			pos4 = e.clientY;
+			document.onmouseup = closeDragElement;
+			// call a function whenever the cursor moves:
+			document.onmousemove = elementDrag;
+		}
+
+		function elementDrag(e) {
+			e = e || window.event;
+			e.preventDefault();
+			// calculate the new cursor position:
+			pos1 = pos3 - e.clientX;
+			pos2 = pos4 - e.clientY;
+			pos3 = e.clientX;
+			pos4 = e.clientY;
+			// set the element's new position:
+			elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+			elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+		}
+
+		function closeDragElement() {
+			// stop moving when mouse button is released:
+			document.onmouseup = null;
+			document.onmousemove = null;
+		}
+	}
+	$(document).ready(function() {
+		dragElement(document.getElementById("draggableDiv"));
+		$("#draggableDiv").on("dragstart", function(e) {
+			$('#draggableDivHeader').css("cursor", "dragging");
+		});
+
+	});
+	function closeModal() {
+		$('#fsaModal').hide();
+		if(onClose!=undefined){
+			onClose();
+		}
+	}
+
+	var onClose;
+	function showFsaModal(paramObj) {
+		$('#fsaModalMask').width($(document).width());
+		$('#fsaModalMask').height($(document).height());
+
+		if (paramObj.width != undefined) {
+			$('#draggableDiv').width(paramObj.width);
+		}
+		if (paramObj.title != undefined) {
+			$('#fsaModalTitle').text(paramObj.title);
+		}
+		if (paramObj.message != undefined) {
+			$('#fsaModalMessage').text(paramObj.message);
+			$('#fsaModalMessageDiv').show();
+		}else{
+			$('#fsaModalMessageDiv').hide();
+		}
+		if (paramObj.btn != undefined) {
+			$('#btnAreaHr').show();
+			if (paramObj.btn.includes('ok')) {
+				$('#okBtn').show();
+			}
+			if (paramObj.btn.includes('cancel')) {
+				$('#cancelBtn').show();
+			}
+		}
+		if (paramObj.doOk != undefined) {
+			$('#okBtn').unbind('click')
+			$('#okBtn').click(paramObj.doOk);
+		}
+
+		if(paramObj.body != undefined){
+			$('#fsaModalBody').html(paramObj.body);
+			$('#fsaModalBody').show();
+		}else{
+			$('#fsaModalBody').hide();
+		}
+		
+		if(paramObj.block !=undefined){
+			if(!paramObj.block){
+				$('#fsaModalMask').hide();
+			}
+		}
+		
+		if(paramObj.onClose != undefined){
+			onClose = paramObj.onClose;
+		}
+
+		$('#fsaModal').show();
+
+		if (paramObj.left != undefined) {
+			$('#draggableDiv').css("left", paramObj.left);
+		} else {
+			var left = $(document).scrollLeft() + $(window).width()/ 2 - $('#draggableDiv').width() / 2;
+			if (left < 0) {
+				left = 0;
+			}
+			$('#draggableDiv').css('left', left);
+		}
+
+		if (paramObj.top != undefined) {
+			$('#draggableDiv').css("top", paramObj.top);
+		} else {
+			var top =  $(document).scrollTop() + $(window).height()/2 - $('#draggableDiv').height() / 2;
+			if (top < 0) {
+				top = 0;
+			}
+			$('#draggableDiv').css('top', top);
+		}
+	}
+</script>
+</head>
+<body>
+	<div id="fsaModal"
+		style="display: none; position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;">
+		<div id="draggableDiv"
+			style="border-top-left-radius: 5px; border-top-right-radius: 5px; width: 500; background-color: #FFFFFF; position: absolute; left: 100px; top: 100px; z-index: 9999">
+			<div id="draggableDivHeader" onmousedown="onDrag(this)"
+				onmouseup="onMouseUp(this)"
+				style="text-align: left; border-top-left-radius: 5px; border-top-right-radius: 5px">
+				<span id="fsaModalTitle" style=""></span><span
+					style="margin-top: -4px; float: right; cursor: pointer; font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff; opacity: 0.5;"
+					onclick="closeModal()">×</span>
+			</div>
+			<div id="fsaModalMessageDiv" style="text-align: left; padding: 10px">
+				<p id="fsaModalMessage"></p>
+			</div>
+			<div id="fsaModalBody"></div>
+			<div>
+				<hr id="btnAreaHr" style="margin: 0px; display: none">
+				<button id="okBtn" class="btn btn-small btn-outline-success"
+					style="width: 75px; display: none">OK</button>
+				<button id="cancelBtn" class="btn btn-small btn-outline-secondary"
+					style="width: 75px; display: none" onclick="closeModal()">Cancel</button>
+			</div>
+		</div>
+		<div id="fsaModalMask"
+			style="position: absolute; left: 0px; top: 0px; opacity: 0.3; width: 100%; height: 100%; z-index: 9998; background-color: #333741;"
+			disabled="disabled" onclick='closeModal()'></div>
+	</div>
+</body>
+</html>
